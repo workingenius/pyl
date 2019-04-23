@@ -270,7 +270,9 @@ class EQuoted(ESpecialFormMixin, ExpressionType, Evaluator):
     def dismantle(self):  # type: () -> None
         if not isinstance(self.expression, Pair):
             raise EvaluatorSyntaxError('quoted special form should be a list as expression')
-        self.quoted = self.expression.cdr
+        if not isinstance(self.expression.cdr, Pair):
+            raise EvaluatorSyntaxError('quoted expression is empty')
+        self.quoted = self.expression.cdr.car
 
     def construct(self):  # type: () -> Expression
         return Pair(Symbol(self.keyword), self.quoted)
