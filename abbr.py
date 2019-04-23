@@ -11,20 +11,20 @@ class Str(str):
 
 
 def list_in_python(o):
-    if isinstance(o, (int, float)):
+    if isinstance(o, bool):
+        ret = Boolean(o)
+
+    elif isinstance(o, (int, float)):
         ret = Number(o)
+
+    elif isinstance(o, Str):
+        ret = String(o)
 
     elif isinstance(o, str):
         ret = Symbol(o)
 
     elif isinstance(o, unicode):
         ret = Symbol(o.encode('utf-8'))
-
-    elif isinstance(o, Str):
-        ret = String(o)
-
-    elif isinstance(o, bool):
-        ret = Boolean(o)
 
     elif isinstance(o, (tuple, list)):
         ret = pylist_to_list(map(list_in_python, o))
