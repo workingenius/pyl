@@ -10,8 +10,8 @@ class TestSelfEvaluating(unittest.TestCase):
     def test_number(self):
         self.assertEqual(evaluate(Number(1)), Number(1))
 
-    def test_symbol(self):
-        self.assertEqual(evaluate(Symbol('a')), Symbol('a'))
+    # def test_symbol(self):
+    #     self.assertEqual(evaluate(Symbol('a')), Symbol('a'))
 
     def test_string(self):
         self.assertEqual(evaluate(String('b')), String('b'))

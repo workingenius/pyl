@@ -33,3 +33,18 @@ def list_in_python(o):
         raise TypeError('invalid scheme abbreviation')
 
     return ret
+
+
+def repl():
+    from pyl import evaluate, init_environment
+
+    env = init_environment()
+
+    while True:
+        inp = raw_input('')
+        expr = list_in_python(eval(inp))
+        print evaluate(expr, env)
+
+
+if __name__ == '__main__':
+    repl()
