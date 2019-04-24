@@ -28,11 +28,6 @@ class Procedure(ComputationalObject):
     def call(self, *arguments):
         # type: (List[ComputationalObject]) -> ComputationalObject
 
-        if len(self.parameter) > len(arguments):
-            raise EvaluatorRuntimeError('too less arguments given')
-        elif len(self.parameter) < len(arguments):
-            raise EvaluatorRuntimeError('too much arguments given')
-
         env = self.environment.extend()
         for param, arg in zip(self.parameter, arguments):
             env.set(param.value, arg)
@@ -49,24 +44,10 @@ class PrimitiveProcedure(ComputationalObject):
         return self.py_procedure(*arguments)
 
 
-class BaseEvaluatorException(Exception):
-    u"""解释器基础异常"""
-
-
-class EvaluatorSyntaxError(BaseEvaluatorException):
-    u"""解释器遇到语法错误"""
-
-
-class EvaluatorRuntimeError(BaseEvaluatorException):
-    u"""运行时错误"""
-
-
 def evaluate(expression, environment=None):
     # type: (Expression, Environment) -> ComputationalObject
     environment = environment or init_environment()
     evaluator_class = classify(expression)
-    if evaluator_class is None:
-        raise EvaluatorSyntaxError('unclassified expression')
     return evaluator_class(expression).eval(environment)
 
 
@@ -148,15 +129,11 @@ class EVariable(NoPartsMixin, ExpressionType, Evaluator):
         return isinstance(expression, Symbol)
 
     def __init__(self, expression):
-        if not isinstance(expression, Symbol):
-            raise EvaluatorSyntaxError('variable can only accept symbol as var name')
         self.expression = expression  # type: Symbol
         super(self.__class__, self).__init__()
 
     def eval(self, environment):
         ret = environment.get(self.expression.value)
-        if ret is None:
-            raise EvaluatorRuntimeError('varialbe {} does not exist'.format(self.expression.value))
         return ret
 
 
@@ -214,10 +191,6 @@ class EQuoted(ESpecialFormMixin, ExpressionType, Evaluator):
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        if not isinstance(self.expression, Pair):
-            raise EvaluatorSyntaxError('quoted special form should be a list as expression')
-        if not isinstance(self.expression.cdr, Pair):
-            raise EvaluatorSyntaxError('quoted expression is empty')
         self.quoted = self.expression.cdr.car
 
     def construct(self):  # type: () -> Expression
@@ -252,25 +225,11 @@ class EAssignment(ESpecialFormMixin, ExpressionType, Evaluator):
 
     def _assignment_body(self):  # type: () -> Expression
         body_expr = self.index(self.expression, 2)
-        self.verify_assignment_body(body_expr)
         return body_expr
 
     def construct(self):  # type: () -> Expression
-        self.verify_variable_name(self.variable_name)
         self.verify_assignment_body(self.assignment_body)
         return Pair(Symbol(self.keyword), Pair(self.variable_name, self.assignment_body))
-
-    @staticmethod
-    def verify_variable_name(variable_name):
-        if variable_name is None:
-            raise EvaluatorSyntaxError('assignment var name not indicated')
-        if not isinstance(variable_name, Symbol):
-            raise EvaluatorSyntaxError('assignment var name is not a valid symbol')
-
-    @staticmethod
-    def verify_assignment_body(assignment_body):
-        if assignment_body is None:
-            raise EvaluatorSyntaxError('assignment body is empty')
 
     def eval(self, environment):  # type: (Environment) -> ComputationalObject
         name = self.variable_name
@@ -302,14 +261,8 @@ class EDefinition(ESpecialFormMixin, ExpressionType, Evaluator):
         self.body = self._body(self.expression)
 
     def construct(self):  # type: () -> Expression
-        if not isinstance(self.name, Symbol):
-            raise EvaluatorSyntaxError('definition name should be a symbol')
-
         if not isinstance(self.parameter, EParameter):
             raise TypeError('parameter of definition should be a EParameter')
-
-        if not isinstance(self.body, Pair):
-            raise EvaluatorSyntaxError('invalid procedure body')
 
         return cons_list(Symbol(self.keyword),
                          Pair(self.name, self.parameter.expression),
@@ -335,14 +288,8 @@ class ESequence(ESpecialFormMixin, ExpressionType, Evaluator):
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        if not isinstance(self.expression, Pair):
-            raise EvaluatorSyntaxError('sequence expression should be list')
-
         seq = self.expression.cdr
-        try:
-            self.sequence = list_to_pylist(seq)
-        except EvaluatorSyntaxError:
-            raise EvaluatorSyntaxError('invalid expression sequence')
+        self.sequence = list_to_pylist(seq)
 
     def construct(self):  # type: () -> Expression
         return Pair(Symbol(self.keyword), pylist_to_list(self.sequence))
@@ -375,10 +322,6 @@ class EApplication(ExpressionType, Evaluator):
 
     def eval(self, environment):  # type: (Environment) -> ComputationalObject
         proc = evaluate(self.procedure_expression, environment)
-
-        if not isinstance(proc, (Procedure, PrimitiveProcedure)):
-            raise EvaluatorRuntimeError('object can not be called')
-
         args = map(lambda expr: evaluate(expr, environment), self.argument_lst)
         return proc.call(*args)
 
@@ -401,20 +344,8 @@ class EParameter(ExpressionType):
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        try:
-            param_lst = list_to_pylist(self.expression)
-        except EvaluatorSyntaxError:
-            raise EvaluatorSyntaxError('parameter list is not a valid list')
-        else:
-            for e in param_lst:
-                if not isinstance(e, Symbol):
-                    raise EvaluatorSyntaxError('the parameter is not a symbol')
-            self.symbol_lst = param_lst
+        param_lst = list_to_pylist(self.expression)
+        self.symbol_lst = param_lst
 
     def construct(self):  # type: () -> Expression
-        if isinstance(self.symbol_lst, list) and all([isinstance(e, Symbol) for e in self.symbol_lst]):
-            pass
-        else:
-            raise EvaluatorSyntaxError('invalid symbol list')
-
         return pylist_to_list(self.symbol_lst)

@@ -24,8 +24,5 @@ def list_to_pylist(lst):
     while isinstance(pair, Pair):
         py_lst.append(pair.car)
         pair = pair.cdr
-    if not isinstance(pair, Nil):
-        from .evaluator import EvaluatorSyntaxError
-        raise EvaluatorSyntaxError('in fact a dotted list')
 
     return py_lst

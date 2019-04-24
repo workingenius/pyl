@@ -3,7 +3,7 @@ import unittest
 
 from abbr import list_in_python as l
 from pyl.base import Number, String, Boolean
-from pyl.evaluator import EvaluatorSyntaxError, evaluate
+from pyl.evaluator import evaluate
 
 
 class TestSelfEvaluating(unittest.TestCase):
@@ -29,9 +29,3 @@ class TestQuoted(unittest.TestCase):
             ),
             l([1, 2, 3])
         )
-
-    def test_bad_quoted(self):
-        with self.assertRaises(EvaluatorSyntaxError):
-            evaluate(
-                l(['quote'])
-            )
