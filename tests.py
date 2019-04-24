@@ -1,9 +1,9 @@
 # -*- coding:utf8 -*-
-from pyl import Symbol, Number, String, Boolean
-from pyl import evaluate
-from pyl import EvaluatorSyntaxError
-from abbr import list_in_python as l
 import unittest
+
+from abbr import list_in_python as l
+from pyl.base import Number, String, Boolean
+from pyl.evaluator import EvaluatorSyntaxError, evaluate
 
 
 class TestSelfEvaluating(unittest.TestCase):

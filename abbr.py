@@ -2,8 +2,8 @@
 
 u"""使在 python 中能直观地生成 scheme 列表"""
 
-
-from pyl import Symbol, Number, String, Boolean, pylist_to_list
+from pyl.helpers import pylist_to_list
+from pyl.base import Symbol, Number, String, Boolean
 
 
 class Str(str):
@@ -36,7 +36,8 @@ def list_in_python(o):
 
 
 def repl():
-    from pyl import evaluate, init_environment
+    from pyl.environment import init_environment
+    from pyl.evaluator import evaluate
 
     env = init_environment()
 

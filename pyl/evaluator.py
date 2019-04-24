@@ -1,98 +1,14 @@
-# -*- coding: utf-8 -*-
-from environment import Environment, init_environment
+# -*- coding:utf8 -*-
+from .environment import Environment, init_environment
+from .helpers import cons_list, list_to_pylist, pylist_to_list
+from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair
+
 
 try:
     # noinspection PyUnresolvedReferences
     from typing import List, Optional, Union, Dict, Type, Callable
 except ImportError:
     pass
-
-
-# basic data class
-
-
-class ComputationalObject(object):
-    def __eq__(self, other):
-        return self.__class__ == other.__class__ and self.__dict__ == other.__dict__
-
-
-Expression = ComputationalObject
-
-
-class Symbol(ComputationalObject):
-    def __init__(self, value):
-        # type: (str) -> None
-        self.value = value  # type: str
-
-    def __str__(self):
-        return self.value
-
-
-class Number(ComputationalObject):
-    def __init__(self, value):
-        # type: (int) -> None
-        self.value = value  # type: int
-
-    def __str__(self):
-        return str(self.value)
-
-
-class String(ComputationalObject):
-    def __init__(self, value):
-        # type: (str) -> None
-        self.value = value  # type: str
-
-    def __str__(self):
-        return '"%s"' % self.value
-
-
-class Boolean(ComputationalObject):
-    def __init__(self, value):
-        # type: (bool) -> None
-        self.value = value  # type: bool
-
-    def __str__(self):
-        return '#f' if not self.value else '#t'
-
-
-# computational object
-
-
-class Pair(ComputationalObject):
-    def __init__(self, car, cdr):
-        # type: (ComputationalObject, ComputationalObject) -> None
-        self.car = car  # type: ComputationalObject
-        self.cdr = cdr  # type: ComputationalObject
-
-    def format(self, closed=True):
-        car = str(self.car)
-
-        if isinstance(self.cdr, Pair):
-            cdr = self.cdr.format(closed=False)
-            ret = '{} {}'.format(car, cdr)
-
-        elif isinstance(self.cdr, Nil):
-            ret = car
-
-        else:
-            cdr = str(self.cdr)
-            ret = '{} . {}'.format(car, cdr)
-
-        if closed:
-            ret = '({})'.format(ret)
-
-        return ret
-
-    def __str__(self):
-        return self.format(closed=True)
-
-
-class Nil(ComputationalObject):
-    def __str__(self):
-        return 'nil'
-
-
-NIL = Nil()
 
 
 class Procedure(ComputationalObject):
@@ -133,9 +49,6 @@ class PrimitiveProcedure(ComputationalObject):
         return self.py_procedure(*arguments)
 
 
-# exceptions
-
-
 class BaseEvaluatorException(Exception):
     u"""解释器基础异常"""
 
@@ -146,9 +59,6 @@ class EvaluatorSyntaxError(BaseEvaluatorException):
 
 class EvaluatorRuntimeError(BaseEvaluatorException):
     u"""运行时错误"""
-
-
-# evaluator
 
 
 def evaluate(expression, environment=None):
@@ -508,34 +418,3 @@ class EParameter(ExpressionType):
             raise EvaluatorSyntaxError('invalid symbol list')
 
         return pylist_to_list(self.symbol_lst)
-
-
-# helpers
-
-
-def pylist_to_list(py_lst):
-    if len(py_lst) > 0:
-        ret = Pair(
-            py_lst[0],
-            pylist_to_list(py_lst[1:])
-        )
-    else:
-        ret = NIL
-    return ret
-
-
-def cons_list(*elements):
-    return pylist_to_list(elements)
-
-
-def list_to_pylist(lst):
-    py_lst = []
-
-    pair = lst
-    while isinstance(pair, Pair):
-        py_lst.append(pair.car)
-        pair = pair.cdr
-    if not isinstance(pair, Nil):
-        raise EvaluatorSyntaxError('in fact a dotted list')
-
-    return py_lst

@@ -1,4 +1,8 @@
 # -*- coding:utf8 -*-
+
+from .base import ComputationalObject
+
+
 try:
     # noinspection PyUnresolvedReferences
     from typing import List, Optional, Union, Dict, Type, Callable

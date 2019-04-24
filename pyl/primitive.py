@@ -1,12 +1,15 @@
 # -*- coding:utf8 -*-
 
+u""" Primitive Procedures -- 原始过程及其实现"""
+
 try:
     # noinspection PyUnresolvedReferences
     from typing import List, Optional, Union, Dict, Type, Callable
 except ImportError:
     pass
 
-from pyl import PrimitiveProcedure, Symbol, Number, ComputationalObject
+from .evaluator import PrimitiveProcedure
+from .base import ComputationalObject, Symbol, Number
 
 
 class Plus(PrimitiveProcedure):
