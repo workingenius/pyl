@@ -1,5 +1,5 @@
 # -*- coding:utf8 -*-
-from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair
+from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair, is_true
 from .environment import Environment
 from .helpers import cons_list, list_to_pylist, pylist_to_list
 
@@ -297,6 +297,37 @@ class ESequence(ESpecialFormMixin, ExpressionType, Evaluator):
         return evaluate_sequence(self.sequence, environment)
 
 
+class EIf(ESpecialFormMixin, ExpressionType, Evaluator):
+    keyword = 'if'
+
+    def __init__(self, expression=None, condition=None, consequence=None, alternative=None):
+        self.expression = expression  # type: Expression
+        self.condition = condition  # type: Expression
+        self.consequence = consequence  # type: Expression
+        self.alternative = alternative  # type: Expression
+        super(self.__class__, self).__init__()
+
+    def dismantle(self):  # type: () -> None
+        self.condition = self.expression.cdr.car
+        self.consequence = self.expression.cdr.cdr.car
+        self.alternative = self.expression.cdr.cdr.cdr.car
+
+    def construct(self):  # type: () -> Expression
+        return cons_list(self.condition, self.consequence, self.alternative)
+
+    @classmethod
+    def adapt(cls, expression):  # type: (Expression) -> bool
+        return cls.first_symbol(expression) == Symbol(cls.keyword)
+
+    def eval(self, environment):  # type: (Environment) -> ComputationalObject
+        cond = evaluate(self.condition, environment)
+        if is_true(cond):
+            ret = evaluate(self.consequence, environment)
+        else:
+            ret = evaluate(self.alternative, environment)
+        return ret
+
+
 class EApplication(ExpressionType, Evaluator):
     def __init__(self, expression=None, procedure_expression=None, argument_lst=None):
         self.expression = expression  # type: Pair
@@ -328,6 +359,7 @@ _evaluator_search_sequence = [
     EAssignment,
     EDefinition,
     ESequence,
+    EIf,
     EApplication,
 ]
 

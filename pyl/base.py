@@ -82,3 +82,13 @@ class Nil(ComputationalObject):
 
 
 NIL = Nil()
+
+
+def is_true(v):
+    assert isinstance(v, ComputationalObject)
+    return not is_false(v)
+
+
+def is_false(v):
+    assert isinstance(v, ComputationalObject)
+    return v == Boolean(False)
