@@ -19,7 +19,7 @@ class EnvironmentFrame(object):
         if key in self.data:
             return self.data[key]
         elif self.parent:
-            return self.get(key)
+            return self.parent.get(key)
 
     def set(self, key, value):
         self.data[key] = value

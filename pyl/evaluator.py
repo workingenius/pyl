@@ -31,7 +31,7 @@ class Procedure(ComputationalObject):
         for param, arg in zip(self.parameter, arguments):
             env.set(param.value, arg)
 
-        return evaluate(self.body, env)
+        return evaluate_sequence(list_to_pylist(self.body), env)
 
 
 class PrimitiveProcedure(ComputationalObject):
@@ -167,7 +167,7 @@ class ESpecialFormMixin(object):
             pair = lst
             ret = pair.car
 
-        elif index > 1:
+        elif index > 0:
             # noinspection PyTypeChecker
             ret = cls.index(lst.cdr, index - 1)
 
@@ -217,7 +217,6 @@ class EAssignment(ESpecialFormMixin, ExpressionType, Evaluator):
 
     def _variable_name(self):  # type: () -> str
         symbol_as_var_name = self.index(self.expression, 1)
-        self.verify_variable_name(symbol_as_var_name)
         return symbol_as_var_name.value
 
     def _assignment_body(self):  # type: () -> Expression
@@ -225,7 +224,6 @@ class EAssignment(ESpecialFormMixin, ExpressionType, Evaluator):
         return body_expr
 
     def construct(self):  # type: () -> Expression
-        self.verify_assignment_body(self.assignment_body)
         return Pair(Symbol(self.keyword), Pair(self.variable_name, self.assignment_body))
 
     def eval(self, environment):  # type: (Environment) -> ComputationalObject
@@ -253,9 +251,9 @@ class EDefinition(ESpecialFormMixin, ExpressionType, Evaluator):
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        self.name = self._procedure_name(self.expression)
-        self.parameter = self._parameter(self.expression)
-        self.body = self._body(self.expression)
+        self.name = self.expression.cdr.car.car
+        self.parameter = EParameter(expression=self.expression.cdr.car.cdr)
+        self.body = self.expression.cdr.cdr
 
     def construct(self):  # type: () -> Expression
         if not isinstance(self.parameter, EParameter):
