@@ -1,9 +1,11 @@
 # -*- coding:utf8 -*-
 
-u"""使在 python 中能直观地生成 scheme 列表"""
+u"""使在 python 中能直观地生成 scheme 列表
 
-from pyl.helpers import pylist_to_list
+不依赖 parser 也能达到 repl 的效果"""
+
 from pyl.base import Symbol, Number, String, Boolean
+from pyl.helpers import pylist_to_list
 
 
 class Str(str):

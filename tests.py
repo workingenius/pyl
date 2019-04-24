@@ -3,7 +3,7 @@ import unittest
 
 from abbr import list_in_python as l
 from pyl.base import Number, String, Boolean
-from pyl.evaluator import evaluate
+from pyl.main import evaluate
 
 
 class TestSelfEvaluating(unittest.TestCase):

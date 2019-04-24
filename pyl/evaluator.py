@@ -1,8 +1,7 @@
 # -*- coding:utf8 -*-
-from .environment import Environment, init_environment
-from .helpers import cons_list, list_to_pylist, pylist_to_list
 from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair
-
+from .environment import Environment
+from .helpers import cons_list, list_to_pylist, pylist_to_list
 
 try:
     # noinspection PyUnresolvedReferences
@@ -44,15 +43,13 @@ class PrimitiveProcedure(ComputationalObject):
         return self.py_procedure(*arguments)
 
 
-def evaluate(expression, environment=None):
+def evaluate(expression, environment):
     # type: (Expression, Environment) -> ComputationalObject
-    environment = environment or init_environment()
     evaluator_class = classify(expression)
     return evaluator_class(expression).eval(environment)
 
 
-def evaluate_sequence(expression_lst, environment=None):
-    environment = environment or init_environment()
+def evaluate_sequence(expression_lst, environment):
     co_lst = map(lambda expr: evaluate(expr, environment), expression_lst)
     if co_lst:
         return co_lst[-1]

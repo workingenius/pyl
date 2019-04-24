@@ -35,7 +35,7 @@ class Environment(object):
 
     def set(self, key, value):
         # type: (str, ComputationalObject) -> None
-        # assert isinstance(value, ComputationalObject)
+        assert isinstance(value, ComputationalObject)
         self.frame.set(key, value)
 
     def extend(self):
