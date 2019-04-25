@@ -8,26 +8,39 @@ try:
 except ImportError:
     pass
 
-from .evaluator import PrimitiveProcedure
+from .evaluator import ProcedureBase, Parameter
 from .base import ComputationalObject, Symbol, Number
 
 
-class Plus(PrimitiveProcedure):
-    keyword = Symbol('+')
+class Primitive(object):
+    @property
+    def keyword(self):
+        # type: () -> str
+        raise NotImplementedError
+
+
+class Plus(Primitive, ProcedureBase):
+    keyword = '+'
+
+    parameter = Parameter(['a', 'b'])
 
     def call(self, *nums):  # type: (List[ComputationalObject]) -> ComputationalObject
         return Number(sum(map(lambda x: x.value, nums)))
 
 
-class Minus(PrimitiveProcedure):
-    keyword = Symbol('-')
+class Minus(Primitive, ProcedureBase):
+    keyword = '-'
+
+    parameter = Parameter(['a', 'b'])
 
     def call(self, a, b):
         return Number(a.value - b.value)
 
 
-class Multiply(PrimitiveProcedure):
-    keyword = Symbol('*')
+class Multiply(Primitive, ProcedureBase):
+    keyword = '*'
+
+    parameter = Parameter(['a', 'b'])
 
     def call(self, a, b):
         return Number(a.value * b.value)

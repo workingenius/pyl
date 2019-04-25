@@ -15,21 +15,22 @@ class Parameter(object):
         self.names = names  # type: List[str]
 
 
-class ProcedureBase(object):
+class ProcedureBase(ComputationalObject):
     @property
     def parameter(self):
         # type: () -> Parameter
         u"""参数表"""
         raise NotImplementedError
 
-    @property
-    def body(self):
-        # type: () -> Expression
-        u"""过程体"""
+    def call(self, *arguments):
+        # type: (*list) -> ComputationalObject
         raise NotImplementedError
 
+    def apply(self, *args):
+        return self.call(*args)
 
-class Procedure(ComputationalObject, ProcedureBase):
+
+class Procedure(ProcedureBase):
     def __init__(self, parameter, body, environment):
         # type: (Parameter, Expression, Environment) -> None
 
@@ -37,16 +38,12 @@ class Procedure(ComputationalObject, ProcedureBase):
         assert isinstance(environment, Environment)
 
         self._parameter = parameter  # type: Parameter
-        self._body = body  # type: Expression
+        self.body = body  # type: Expression
         self.environment = environment  # type: Environment
 
     @property
     def parameter(self):  # type: () -> Parameter
         return self._parameter
-
-    @property
-    def body(self):  # type: () -> Expression
-        return self._body
 
     def call(self, *arguments):
         # type: (List[ComputationalObject]) -> ComputationalObject
@@ -56,15 +53,6 @@ class Procedure(ComputationalObject, ProcedureBase):
             env.set(param, arg)
 
         return evaluate_sequence(self.body, env)
-
-
-class PrimitiveProcedure(ComputationalObject):
-    def __init__(self, py_procedure=None):
-        self.py_procedure = py_procedure  # type: Optional[Callable]
-
-    def call(self, *arguments):
-        # type: (List[ComputationalObject]) -> ComputationalObject
-        return self.py_procedure(*arguments)
 
 
 def evaluate(expression, environment):

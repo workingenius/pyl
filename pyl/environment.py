@@ -1,11 +1,9 @@
 # -*- coding:utf8 -*-
 
-from .base import ComputationalObject
-
 
 try:
     # noinspection PyUnresolvedReferences
-    from typing import List, Optional, Union, Dict, Type, Callable
+    from typing import List, Optional, Union, Dict, Type, Callable, Any
 except ImportError:
     pass
 
@@ -30,12 +28,11 @@ class Environment(object):
         self.frame = frame or EnvironmentFrame()
 
     def get(self, key):
-        # type: (str) -> ComputationalObject
+        # type: (str) -> Any
         return self.frame.get(key)
 
     def set(self, key, value):
-        # type: (str, ComputationalObject) -> None
-        assert isinstance(value, ComputationalObject)
+        # type: (str, Any) -> None
         self.frame.set(key, value)
 
     def extend(self):
@@ -50,6 +47,6 @@ def init_environment():
     from primitive import primitives
 
     for primitive in primitives:
-        env.set(primitive.keyword.value, primitive)
+        env.set(primitive.keyword, primitive)
 
     return env
