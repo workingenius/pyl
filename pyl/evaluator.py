@@ -173,6 +173,10 @@ class ESpecialFormMixin(object):
 
         return ret
 
+    @classmethod
+    def adapt(cls, expression):  # type: (Expression) -> bool
+        return cls.first_symbol(expression) == Symbol(cls.keyword)
+
 
 class EQuoted(ESpecialFormMixin, ExpressionType, Evaluator):
     u"""针对 引用 的解释"""
@@ -328,6 +332,26 @@ class EIf(ESpecialFormMixin, ExpressionType, Evaluator):
         return ret
 
 
+class ELambda(ESpecialFormMixin, ExpressionType, Evaluator):
+    keyword = 'lambda'
+
+    def __init__(self, expression=None, parameter=None, body=None):
+        self.expression = expression  # type: Expression
+        self.parameter = parameter  # type: List[Symbol]
+        self.body = body  # type: Expression
+        super(self.__class__, self).__init__()
+
+    def dismantle(self):  # type: () -> None
+        self.parameter = list_to_pylist(self.expression.cdr.car)
+        self.body = self.expression.cdr.cdr
+
+    def construct(self):  # type: () -> Expression
+        return cons_list(Symbol(self.keyword), pylist_to_list(self.parameter), pylist_to_list(self.body))
+
+    def eval(self, environment):  # type: (Environment) -> ComputationalObject
+        return Procedure(parameter=self.parameter, body=self.body, environment=environment)
+
+
 class EApplication(ExpressionType, Evaluator):
     def __init__(self, expression=None, procedure_expression=None, argument_lst=None):
         self.expression = expression  # type: Pair
@@ -360,6 +384,7 @@ _evaluator_search_sequence = [
     EDefinition,
     ESequence,
     EIf,
+    ELambda,
     EApplication,
 ]
 
