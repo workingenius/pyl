@@ -10,26 +10,50 @@ except ImportError:
     pass
 
 
-class Procedure(ComputationalObject):
-    def __init__(self, parameter, body, environment):
-        # type: (List[Symbol], Expression, Environment) -> None
+class Parameter(object):
+    def __init__(self, names):
+        self.names = names  # type: List[str]
 
-        for i, param in enumerate(parameter):
-            assert isinstance(param, Symbol)
+
+class ProcedureBase(object):
+    @property
+    def parameter(self):
+        # type: () -> Parameter
+        u"""参数表"""
+        raise NotImplementedError
+
+    @property
+    def body(self):
+        # type: () -> Expression
+        u"""过程体"""
+        raise NotImplementedError
+
+
+class Procedure(ComputationalObject, ProcedureBase):
+    def __init__(self, parameter, body, environment):
+        # type: (Parameter, Expression, Environment) -> None
 
         assert isinstance(body, Expression)
         assert isinstance(environment, Environment)
 
-        self.parameter = list(parameter)  # type: List[Symbol]
-        self.body = body  # type: Expression
+        self._parameter = parameter  # type: Parameter
+        self._body = body  # type: Expression
         self.environment = environment  # type: Environment
+
+    @property
+    def parameter(self):  # type: () -> Parameter
+        return self._parameter
+
+    @property
+    def body(self):  # type: () -> Expression
+        return self._body
 
     def call(self, *arguments):
         # type: (List[ComputationalObject]) -> ComputationalObject
 
         env = self.environment.extend()
-        for param, arg in zip(self.parameter, arguments):
-            env.set(param.value, arg)
+        for param, arg in zip(self.parameter.names, arguments):
+            env.set(param, arg)
 
         return evaluate_sequence(self.body, env)
 
@@ -235,6 +259,7 @@ class EAssignment(ESpecialFormMixin, ExpressionType, Evaluator):
     def eval(self, environment):  # type: (Environment) -> ComputationalObject
         name = self.variable_name
         value = evaluate(self.assignment_body, environment)
+        # TODO: bug
         environment.set(name, value)
         return Symbol('ok')
 
@@ -252,27 +277,27 @@ class EDefinition(ESpecialFormMixin, ExpressionType, Evaluator):
     def __init__(self, expression=None, name=None, parameter=None, body=None):
         self.expression = expression  # type: Expression
         self.name = name  # type: Symbol
-        self.parameter = parameter  # type: EParameter
+        self.parameter = parameter  # type: Parameter
         self.body = body  # type: Pair
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
         self.name = self.expression.cdr.car.car
-        self.parameter = EParameter(expression=self.expression.cdr.car.cdr)
+        self.parameter = EParameter(expression=self.expression.cdr.car.cdr).parameter
         self.body = self.expression.cdr.cdr
 
     def construct(self):  # type: () -> Expression
-        if not isinstance(self.parameter, EParameter):
-            raise TypeError('parameter of definition should be a EParameter')
+        if not isinstance(self.parameter, Parameter):
+            raise TypeError('parameter of definition should be a Parameter')
 
         return cons_list(Symbol(self.keyword),
-                         Pair(self.name, self.parameter.expression),
+                         Pair(self.name, EParameter(parameter=self.parameter).expression),
                          self.body)
 
     def eval(self, environment):  # type: (Environment) -> ComputationalObject
         name = self.name.value
         proc = Procedure(
-            parameter=self.parameter.symbol_lst,
+            parameter=self.parameter,
             body=self.body,
             environment=environment
         )
@@ -338,12 +363,12 @@ class ELambda(ESpecialFormMixin, ExpressionType, Evaluator):
 
     def __init__(self, expression=None, parameter=None, body=None):
         self.expression = expression  # type: Expression
-        self.parameter = parameter  # type: List[Symbol]
+        self.parameter = parameter  # type: Parameter
         self.body = body  # type: Expression
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        self.parameter = list_to_pylist(self.expression.cdr.car)
+        self.parameter = EParameter(self.expression.cdr.car).parameter
         self.body = self.expression.cdr.cdr
 
     def construct(self):  # type: () -> Expression
@@ -391,14 +416,13 @@ _evaluator_search_sequence = [
 
 
 class EParameter(ExpressionType):
-    def __init__(self, expression=None, symbol_lst=None):
+    def __init__(self, expression=None, parameter=None):
         self.expression = expression  # type: Expression
-        self.symbol_lst = symbol_lst  # type: List[Symbol]
+        self.parameter = parameter  # type: Parameter
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        param_lst = list_to_pylist(self.expression)
-        self.symbol_lst = param_lst
+        self.parameter = Parameter(names=[expr.value for expr in list_to_pylist(self.expression)])
 
     def construct(self):  # type: () -> Expression
-        return pylist_to_list(self.symbol_lst)
+        return pylist_to_list(map(Symbol, self.parameter.names))

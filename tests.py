@@ -29,3 +29,13 @@ class TestQuoted(unittest.TestCase):
             ),
             l([1, 2, 3])
         )
+
+
+class TestLambda(unittest.TestCase):
+    def test_lambda(self):
+        self.assertEqual(
+            evaluate(
+                l([['lambda', ['x', 'y'], ['+', 'x', 'y']], 1, 2])
+            ),
+            Number(3)
+        )
