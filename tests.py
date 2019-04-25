@@ -39,3 +39,13 @@ class TestLambda(unittest.TestCase):
             ),
             Number(3)
         )
+
+
+class TestBoolean(unittest.TestCase):
+    def test_and(self):
+        self.assertEqual(
+            evaluate(
+                l(['and', True, False])
+            ),
+            Boolean(False)
+        )

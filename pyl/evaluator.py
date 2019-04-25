@@ -1,5 +1,5 @@
 # -*- coding:utf8 -*-
-from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair, is_true
+from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair, is_true, is_false
 from .environment import Environment
 from .helpers import cons_list, list_to_pylist, pylist_to_list
 
@@ -366,6 +366,48 @@ class ELambda(ESpecialFormMixin, ExpressionType, Evaluator):
         return Procedure(parameter=self.parameter, body=self.body, environment=environment)
 
 
+class EAnd(ESpecialFormMixin, ExpressionType, Evaluator):
+    keyword = 'and'
+
+    def __init__(self, expression=None, item_lst=None):
+        self.expression = expression  # type: Expression
+        self.item_lst = item_lst  # type: List[Expression]
+        super(self.__class__, self).__init__()
+
+    def dismantle(self):  # type: () -> None
+        self.item_lst = list_to_pylist(self.expression.cdr)
+
+    def construct(self):  # type: () -> Expression
+        return pylist_to_list(self.item_lst)
+
+    def eval(self, environment):  # type: (Environment) -> ComputationalObject
+        for item in self.item_lst:
+            if is_false(evaluate(item, environment)):
+                return Boolean(False)
+        return Boolean(True)
+
+
+class EOr(ESpecialFormMixin, ExpressionType, Evaluator):
+    keyword = 'or'
+
+    def __init__(self, expression=None, item_lst=None):
+        self.expression = expression  # type: Expression
+        self.item_lst = item_lst  # type: List[Expression]
+        super(self.__class__, self).__init__()
+
+    def dismantle(self):  # type: () -> None
+        self.item_lst = list_to_pylist(self.expression.cdr)
+
+    def construct(self):  # type: () -> Expression
+        return pylist_to_list(self.item_lst)
+
+    def eval(self, environment):  # type: (Environment) -> ComputationalObject
+        for item in self.item_lst:
+            if is_true(evaluate(item, environment)):
+                return Boolean(True)
+        return Boolean(False)
+
+
 class EApplication(ExpressionType, Evaluator):
     def __init__(self, expression=None, procedure_expression=None, argument_lst=None):
         self.expression = expression  # type: Pair
@@ -398,6 +440,8 @@ _evaluator_search_sequence = [
     EDefinition,
     ESequence,
     EIf,
+    EOr,
+    EAnd,
     ELambda,
     EApplication,
 ]
