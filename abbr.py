@@ -3,6 +3,7 @@
 u"""使在 python 中能直观地生成 scheme 列表
 
 不依赖 parser 也能达到 repl 的效果"""
+import traceback
 
 from pyl.base import Symbol, Number, String, Boolean
 from pyl.helpers import pylist_to_list
@@ -44,9 +45,19 @@ def repl():
     env = init_environment()
 
     while True:
-        inp = raw_input('')
-        expr = list_in_python(eval(inp))
-        print evaluate(expr, env)
+        try:
+            inp = raw_input('!> ')
+        except EOFError:
+            print
+            print 'Bye.'
+            break
+
+        if inp.strip():
+            try:
+                expr = list_in_python(eval(inp))
+                print evaluate(expr, env)
+            except Exception:
+                print traceback.format_exc()
 
 
 if __name__ == '__main__':
