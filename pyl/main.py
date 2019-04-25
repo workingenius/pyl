@@ -1,10 +1,14 @@
 # -*- coding:utf8 -*-
 
-u"""evaluator entrance"""
+u"""evaluator entrance
+
+解释器入口
+接受要解释的数据，而不是文本表示的代码
+
+当作一个表达式解释，还是当作表达式序列解释，留给调用者决定
+"""
 
 __all__ = ['evaluate', 'evaluate_sequence']
-
-# TODO: entrance accept code as text and parse it
 
 from .environment import init_environment
 from .evaluator import evaluate as _evaluate, evaluate_sequence as _evaluate_sequence

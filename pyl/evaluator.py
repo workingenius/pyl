@@ -31,7 +31,7 @@ class Procedure(ComputationalObject):
         for param, arg in zip(self.parameter, arguments):
             env.set(param.value, arg)
 
-        return evaluate_sequence(list_to_pylist(self.body), env)
+        return evaluate_sequence(self.body, env)
 
 
 class PrimitiveProcedure(ComputationalObject):
@@ -50,7 +50,9 @@ def evaluate(expression, environment):
 
 
 def evaluate_sequence(expression_lst, environment):
-    co_lst = map(lambda expr: evaluate(expr, environment), expression_lst)
+    # type: (Expression, Environment) -> ComputationalObject
+    co_lst = map(lambda expr: evaluate(expr, environment),
+                 list_to_pylist(expression_lst))
     if co_lst:
         return co_lst[-1]
 
@@ -283,12 +285,11 @@ class ESequence(ESpecialFormMixin, ExpressionType, Evaluator):
 
     def __init__(self, expression=None, sequence=None):
         self.expression = expression  # type: Pair
-        self.sequence = sequence  # type: List[Expression]
+        self.sequence = sequence  # type: Expression
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        seq = self.expression.cdr
-        self.sequence = list_to_pylist(seq)
+        self.sequence = self.expression.cdr
 
     def construct(self):  # type: () -> Expression
         return Pair(Symbol(self.keyword), pylist_to_list(self.sequence))
