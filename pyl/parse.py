@@ -191,8 +191,9 @@ class Parser(object):
         t1 = self.foresee()
         if t1.is_a(TLeftPar):
 
-            t2 = self.foresee()
+            t1, t2 = self.foresee(2)
             if t2.is_a(TRightPar):  # "()" met
+                self.cut(2)
                 return NIL
 
             else:
