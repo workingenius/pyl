@@ -1,0 +1,262 @@
+# -*- coding:utf8 -*-
+
+import re
+
+from pyl.base import Expression, NIL, Number, Symbol, String, Boolean, Pair
+
+__all__ = ['parse']
+
+
+# Lisp grammar
+
+# Expression := Primitive | List
+# Primitive := Number | Symbol | String | Boolean
+# List := "(" ")" | "(" Sequence ")"
+# Sequence := Expression Sequence | Expression
+
+# entrance: Sequence
+
+
+class ParseError(Exception):
+    pass
+
+
+class Token(object):
+    ignore = False
+
+    @property
+    def pattern(self):
+        raise NotImplementedError
+
+    def is_a(self, kls):
+        return isinstance(self, kls)
+
+    def __init__(self, text):
+        self.value = text
+
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, self.value)
+
+
+class TLeftPar(Token):
+    pattern = re.compile(r'\(')
+    value = '('
+
+
+class TRightPar(Token):
+    pattern = re.compile(r'\)')
+    value = ')'
+
+
+class TNumber(Token):
+    pattern = re.compile(r'\d+(\.\d*)?')
+
+    def __init__(self, text):
+        try:
+            num = int(text)
+        except ValueError:
+            num = float(text)
+        self.value = num
+
+
+class TString(Token):
+    pattern = re.compile(r'".*?"')  # TODO: check scheme string escape
+
+    def __init__(self, text):
+        self.value = text.strip('"')
+
+
+class TSymbol(Token):
+    pattern = re.compile(r'[^()\s]+')
+
+    def __init__(self, text):
+        self.value = text
+
+
+class TBoolean(Token):
+    pattern = re.compile(r'#t|#f')
+
+    def __init__(self, text):
+        self.value = False if 'f' in text else True
+
+
+class TBlank(Token):
+    pattern = re.compile(r'\s+')
+    ignore = True
+
+
+class TComments(Token):
+    pattern = re.compile(r';.*\n')
+    ignore = True
+
+
+class TEof(Token):
+    pattern = re.compile(r'')
+
+    def __repr__(self):
+        return 'TEof()'
+
+
+EOF = TEof(None)
+
+token_by_preference = [
+    TBlank,
+    TComments,
+    TLeftPar,
+    TRightPar,
+    TNumber,
+    TString,
+    TBoolean,
+    TString,
+    TSymbol,
+]
+
+
+def tokenize(text):
+    rest = text
+
+    while rest:
+        for token_class in token_by_preference:
+            match = token_class.pattern.match(rest)
+
+            if match:
+                rest = rest[match.end():]
+                if not token_class.ignore:
+                    yield token_class(match.group())
+                break
+        else:
+            raise ParseError('tokenize error')
+
+    yield EOF
+
+
+class Parser(object):
+    def __init__(self, token_lst):
+        self.token_lst = iter(token_lst)
+        self.buffer = []
+
+    def foresee(self, number=1):
+        assert number >= 1
+
+        dif = number - len(self.buffer)
+
+        # want to see more from token list, then pre-read tokens and save to buffer
+        if dif > 0:
+            for i in range(dif):
+                try:
+                    tok = next(self.token_lst)
+                except StopIteration:
+                    self.error('too early EOF')
+                else:
+                    self.buffer.append(tok)
+
+        if number == 1:
+            return self.buffer[0]
+        elif number > 1:
+            return self.buffer[:number]
+
+    def cut(self, number=1):
+        ret = self.foresee(number)
+        self.buffer = self.buffer[number:]
+        return ret
+
+    def parse_number(self):
+        t = self.foresee()
+        if t.is_a(TNumber):
+            self.cut()
+            return Number(t.value)
+
+    def parse_symbol(self):
+        t = self.foresee()
+        if t.is_a(TSymbol):
+            self.cut()
+            return Symbol(t.value)
+
+    def parse_string(self):
+        t = self.foresee()
+        if t.is_a(TString):
+            self.cut()
+            return String(t.value)
+
+    def parse_boolean(self):
+        t = self.foresee()
+        if t.is_a(TBoolean):
+            self.cut()
+            return Boolean(t.value)
+
+    def parse_primitive(self):
+        return self.parse_number() or self.parse_symbol() or self.parse_string() or self.parse_boolean()
+
+    def parse_list(self):
+        t1 = self.foresee()
+        if t1.is_a(TLeftPar):
+
+            t2 = self.foresee()
+            if t2.is_a(TRightPar):  # "()" met
+                return NIL
+
+            else:
+                self.cut()  # cut (
+                seq = self.parse_sequence()
+
+                t = self.foresee()
+                if not t.is_a(TRightPar):
+                    self.error('a closing right parenthesis wanted')
+                self.cut()  # cut )
+
+                return seq
+
+    def parse_sequence(self):
+        car = self.parse_expression()
+        if not car:
+            return None
+
+        cdr = self.parse_sequence()
+        if not cdr:
+            return Pair(car, NIL)
+        else:
+            return Pair(car, cdr)
+
+    def parse_expression(self):
+        pri = self.parse_primitive()
+        if pri is not None:
+            return pri
+
+        lis = self.parse_list()
+        if lis is not None:
+            return lis
+
+    def parse(self):
+        exp = self.parse_sequence()
+        if exp is None:
+            self.error('an expression sequence wanted')
+        if not self.cut().is_a(TEof):
+            self.error('extra code met')
+        return exp
+
+    def error(self, message):
+        raise ParseError(message)
+
+
+def parse(code):
+    # type: (unicode) -> Expression
+    return Parser(tokenize(code)).parse()
+
+# sample_code = '''
+#
+# (define (add x y) (+ x y))
+#
+# ;;;a variable in current scope
+# (set! bb "kdkdkdk")  ; named bb
+#
+# (print (add 4 5))
+#
+# (newline)
+#
+# '''
+#
+# # for t in tokenize(sample_code):
+# #     print t
+#
+#
+# print parse(sample_code)
