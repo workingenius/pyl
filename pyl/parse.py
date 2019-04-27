@@ -60,7 +60,7 @@ class TQuoteMark(Token):
 
 
 class TNumber(Token):
-    pattern = re.compile(r'\d+(\.\d*)?')
+    pattern = re.compile(r'-?\d+(\.\d*)?')
 
     def __init__(self, text):
         try:
