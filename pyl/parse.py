@@ -1,11 +1,15 @@
 # -*- coding:utf8 -*-
 
+# noinspection PyUnresolvedReferences
+try:
+    from typing import Optional, List
+except ImportError:
+    pass
+
 import re
 
 from pyl.base import Expression, NIL, Number, Symbol, String, Boolean, Pair
 from pyl.evaluator import EQuoted
-
-__all__ = ['parse', 'parse_sequence']
 
 
 # Lisp grammar
@@ -258,14 +262,16 @@ class Parser(object):
         raise ParseError(message)
 
 
-def parse(code):
-    # type: (unicode) -> Expression
-    return Parser(tokenize(code)).parse_expression()
+def parse(code=None, token_lst=None):
+    # type: (Optional[unicode], Optional[List[Token]]) -> Expression
+    token_lst = token_lst or tokenize(code)
+    return Parser(token_lst).parse_expression()
 
 
-def parse_sequence(code):
-    # type: (unicode) -> Expression
-    return Parser(tokenize(code)).parse()
+def parse_sequence(code=None, token_lst=None):
+    # type: (Optional[unicode], Optional[List[Token]]) -> Expression
+    token_lst = token_lst or tokenize(code)
+    return Parser(token_lst).parse()
 
 
 # sample_code = '''
