@@ -71,7 +71,7 @@ def evaluate_sequence(expression_lst, environment):
 
 def classify(expression):
     # type: (Expression) -> Optional[type]
-    u"""给表达式分类，决定用哪个 ExpressionType 来解释
+    u"""给表达式分类，决定用哪个 Structure 来解释
 
     没有找到分类，则返回 None
     """
@@ -82,7 +82,13 @@ def classify(expression):
             return evaluator_class
 
 
-class ExpressionType(object):
+class Structure(object):
+    u"""
+    `结构` 可以按照语法把表达式分解成各关键部分，和根据语法把各关键部分组合成表达式
+
+    实现结构与语法的解耦
+    """
+
     def dismantle(self):  # type: () -> None
         u"""把完整表达式分解成关键部分"""
         raise NotImplementedError
@@ -117,7 +123,7 @@ class NoPartsMixin(object):
         raise Exception('should not get here')
 
 
-class ESelfEvaluating(NoPartsMixin, ExpressionType, Evaluator):
+class ESelfEvaluating(NoPartsMixin, Structure, Evaluator):
     u"""针对 解释为自己的表达式 的解释"""
 
     @classmethod
@@ -132,7 +138,7 @@ class ESelfEvaluating(NoPartsMixin, ExpressionType, Evaluator):
         return self.expression
 
 
-class EVariable(NoPartsMixin, ExpressionType, Evaluator):
+class EVariable(NoPartsMixin, Structure, Evaluator):
     u"""针对 变量 的解释"""
 
     @classmethod
@@ -192,7 +198,7 @@ class ESpecialFormMixin(object):
         return cls.first_symbol(expression) == Symbol(cls.keyword)
 
 
-class EQuoted(ESpecialFormMixin, ExpressionType, Evaluator):
+class EQuoted(ESpecialFormMixin, Structure, Evaluator):
     u"""针对 引用 的解释"""
     keyword = 'quote'
 
@@ -215,7 +221,7 @@ class EQuoted(ESpecialFormMixin, ExpressionType, Evaluator):
         return self.quoted
 
 
-class EAssignment(ESpecialFormMixin, ExpressionType, Evaluator):
+class EAssignment(ESpecialFormMixin, Structure, Evaluator):
     u"""针对 赋值 的解释"""
     keyword = 'set!'
 
@@ -252,7 +258,7 @@ class EAssignment(ESpecialFormMixin, ExpressionType, Evaluator):
         return Symbol('ok')
 
 
-class EDefinition(ESpecialFormMixin, ExpressionType, Evaluator):
+class EDefinition(ESpecialFormMixin, Structure, Evaluator):
     u"""针对 define 的解释"""
     keyword = 'define'
 
@@ -293,7 +299,7 @@ class EDefinition(ESpecialFormMixin, ExpressionType, Evaluator):
         return Symbol('ok')
 
 
-class ESequence(ESpecialFormMixin, ExpressionType, Evaluator):
+class ESequence(ESpecialFormMixin, Structure, Evaluator):
     keyword = 'begin'
 
     def __init__(self, expression=None, sequence=None):
@@ -305,7 +311,7 @@ class ESequence(ESpecialFormMixin, ExpressionType, Evaluator):
         self.sequence = self.expression.cdr
 
     def construct(self):  # type: () -> Expression
-        return Pair(Symbol(self.keyword), pylist_to_list(self.sequence))
+        return Pair(Symbol(self.keyword), self.sequence)
 
     @classmethod
     def adapt(cls, expression):  # type: (Expression) -> bool
@@ -315,7 +321,7 @@ class ESequence(ESpecialFormMixin, ExpressionType, Evaluator):
         return evaluate_sequence(self.sequence, environment)
 
 
-class EIf(ESpecialFormMixin, ExpressionType, Evaluator):
+class EIf(ESpecialFormMixin, Structure, Evaluator):
     keyword = 'if'
 
     def __init__(self, expression=None, condition=None, consequence=None, alternative=None):
@@ -346,7 +352,7 @@ class EIf(ESpecialFormMixin, ExpressionType, Evaluator):
         return ret
 
 
-class ELambda(ESpecialFormMixin, ExpressionType, Evaluator):
+class ELambda(ESpecialFormMixin, Structure, Evaluator):
     keyword = 'lambda'
 
     def __init__(self, expression=None, parameter=None, body=None):
@@ -366,7 +372,7 @@ class ELambda(ESpecialFormMixin, ExpressionType, Evaluator):
         return Procedure(parameter=self.parameter, body=self.body, environment=environment)
 
 
-class EAnd(ESpecialFormMixin, ExpressionType, Evaluator):
+class EAnd(ESpecialFormMixin, Structure, Evaluator):
     keyword = 'and'
 
     def __init__(self, expression=None, item_lst=None):
@@ -387,7 +393,7 @@ class EAnd(ESpecialFormMixin, ExpressionType, Evaluator):
         return Boolean(True)
 
 
-class EOr(ESpecialFormMixin, ExpressionType, Evaluator):
+class EOr(ESpecialFormMixin, Structure, Evaluator):
     keyword = 'or'
 
     def __init__(self, expression=None, item_lst=None):
@@ -408,7 +414,67 @@ class EOr(ESpecialFormMixin, ExpressionType, Evaluator):
         return Boolean(False)
 
 
-class EApplication(ExpressionType, Evaluator):
+class SCondBranch(Structure):
+    def __init__(self, expression=None, is_else=None, test=None, then=None):
+        self.expression = expression  # type: Expression
+        self.is_else = is_else  # type: bool
+        self.test = test  # type: Expression
+        self.then = then  # type: Expression
+        super(self.__class__, self).__init__()
+
+    def dismantle(self):  # type: () -> None
+        self.is_else = self.expression.car == Symbol('else')
+        self.test = self.expression.car
+        self.then = self.expression.cdr
+
+    def construct(self):  # type: () -> Expression
+        return Pair(self.test, self.then)
+
+
+class ECond(ESpecialFormMixin, Structure, Evaluator):
+    keyword = 'cond'
+
+    def __init__(self, expression=None, branch_lst=None):
+        self.expression = expression  # type: Expression
+        self.branch_lst = branch_lst  # type: List[SCondBranch]
+        super(self.__class__, self).__init__()
+
+    def dismantle(self):  # type: () -> None
+        self.branch_lst = map(SCondBranch, list_to_pylist(self.expression.cdr))
+
+    def construct(self):  # type: () -> Expression
+        return Pair(Symbol(self.keyword), pylist_to_list([c.expression for c in self.branch_lst]))
+
+    def _expand(self, branch_lst):
+        u"""展开成 if 表达式"""
+        ret = None
+
+        if len(branch_lst) > 1:
+            br_0 = branch_lst[0]
+            br_rest = branch_lst[1:]
+
+            ret = EIf(condition=br_0.test,
+                      consequence=ESequence(sequence=br_0.then).expression,
+                      alternative=self._expand(br_rest))
+
+        elif len(branch_lst) == 1:
+            br = branch_lst[0]
+
+            if br.is_else:
+                ret = ESequence(sequence=br.then).expression
+            else:
+                ret = EIf(condition=br.test,
+                          consequence=ESequence(sequence=br.then).expression)
+
+        return ret
+
+    def eval(self, environment):  # type: (Environment) -> ComputationalObject
+        expanded = self._expand(self.branch_lst)
+        if expanded:
+            return expanded.eval(environment)
+
+
+class EApplication(Structure, Evaluator):
     def __init__(self, expression=None, procedure_expression=None, argument_lst=None):
         self.expression = expression  # type: Pair
         self.procedure_expression = procedure_expression  # type: Expression
@@ -440,6 +506,7 @@ _evaluator_search_sequence = [
     EDefinition,
     ESequence,
     EIf,
+    ECond,
     EOr,
     EAnd,
     ELambda,
@@ -447,7 +514,7 @@ _evaluator_search_sequence = [
 ]
 
 
-class EParameter(ExpressionType):
+class EParameter(Structure):
     def __init__(self, expression=None, parameter=None):
         self.expression = expression  # type: Expression
         self.parameter = parameter  # type: Parameter
