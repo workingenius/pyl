@@ -9,7 +9,7 @@ except ImportError:
     pass
 
 from .evaluator import ProcedureBase, Parameter
-from .base import ComputationalObject, Symbol, Number
+from .base import ComputationalObject, Symbol, Number, Boolean
 
 
 class Primitive(object):
@@ -55,6 +55,33 @@ class Divide(Primitive, ProcedureBase):
         return Number(a.value / b.value)
 
 
+class Equal(Primitive, ProcedureBase):
+    keyword = '='
+
+    parameter = Parameter(['a', 'b'])
+
+    def call(self, a, b):
+        return Boolean(a.value == b.value)
+
+
+class GreaterThan(Primitive, ProcedureBase):
+    keyword = '>'
+
+    parameter = Parameter(['a', 'b'])
+
+    def call(self, a, b):
+        return Boolean(a.value > b.value)
+
+
+class LessThan(Primitive, ProcedureBase):
+    keyword = '<'
+
+    parameter = Parameter(['a', 'b'])
+
+    def call(self, a, b):
+        return Boolean(a.value < b.value)
+
+
 class Car(Primitive, ProcedureBase):
     keyword = 'car'
 
@@ -78,6 +105,9 @@ primitives = [
     Minus(),
     Multiply(),
     Divide(),
+    Equal(),
+    GreaterThan(),
+    LessThan(),
     Car(),
     Cdr(),
 ]
