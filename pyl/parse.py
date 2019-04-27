@@ -3,16 +3,18 @@
 import re
 
 from pyl.base import Expression, NIL, Number, Symbol, String, Boolean, Pair
+from pyl.evaluator import EQuoted
 
 __all__ = ['parse']
 
 
 # Lisp grammar
 
-# Expression := Primitive | List
+# Expression := Primitive | List | Quoted
 # Primitive := Number | Symbol | String | Boolean
 # List := "(" ")" | "(" Sequence ")"
 # Sequence := Expression Sequence | Expression
+# Quoted := "`" Expression | "'" Expression
 
 # entrance: Sequence
 
@@ -46,6 +48,11 @@ class TLeftPar(Token):
 class TRightPar(Token):
     pattern = re.compile(r'\)')
     value = ')'
+
+
+class TQuoteMark(Token):
+    pattern = re.compile(r"\'|`")
+    value = "'"
 
 
 class TNumber(Token):
@@ -104,6 +111,7 @@ token_by_preference = [
     TComments,
     TLeftPar,
     TRightPar,
+    TQuoteMark,
     TNumber,
     TString,
     TBoolean,
@@ -187,6 +195,13 @@ class Parser(object):
     def parse_primitive(self):
         return self.parse_number() or self.parse_symbol() or self.parse_string() or self.parse_boolean()
 
+    def parse_quoted(self):
+        tok = self.foresee()
+        if tok.is_a(TQuoteMark):
+            self.cut()  # cut quote mark
+            exp = self.parse_expression()
+            return EQuoted(quoted=exp).expression
+
     def parse_list(self):
         t1 = self.foresee()
         if t1.is_a(TLeftPar):
@@ -227,6 +242,10 @@ class Parser(object):
         if lis is not None:
             return lis
 
+        quo = self.parse_quoted()
+        if quo is not None:
+            return quo
+
     def parse(self):
         exp = self.parse_sequence()
         if exp is None:
@@ -244,6 +263,7 @@ def parse(code):
     return Parser(tokenize(code)).parse()
 
 # sample_code = '''
+# `(1 2)
 #
 # (define (add x y) (+ x y))
 #

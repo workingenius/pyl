@@ -1,5 +1,5 @@
 # -*- coding:utf8 -*-
-from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair, is_true, is_false
+from .base import ComputationalObject, Symbol, Expression, Number, String, Boolean, Pair, is_true, is_false, NIL
 from .environment import Environment
 from .helpers import cons_list, list_to_pylist, pylist_to_list
 
@@ -209,7 +209,7 @@ class EQuoted(ESpecialFormMixin, ExpressionType, Evaluator):
         self.quoted = self.expression.cdr.car
 
     def construct(self):  # type: () -> Expression
-        return Pair(Symbol(self.keyword), self.quoted)
+        return Pair(Symbol(self.keyword), Pair(self.quoted, NIL))
 
     def eval(self, environment):  # type: (Environment) -> ComputationalObject
         return self.quoted
