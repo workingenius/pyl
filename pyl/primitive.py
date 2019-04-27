@@ -46,8 +46,38 @@ class Multiply(Primitive, ProcedureBase):
         return Number(a.value * b.value)
 
 
+class Divide(Primitive, ProcedureBase):
+    keyword = '/'
+
+    parameter = Parameter(['a', 'b'])
+
+    def call(self, a, b):
+        return Number(a.value / b.value)
+
+
+class Car(Primitive, ProcedureBase):
+    keyword = 'car'
+
+    parameter = Parameter(['expr'])
+
+    def call(self, expr):
+        return expr.car
+
+
+class Cdr(Primitive, ProcedureBase):
+    keyword = 'cdr'
+
+    parameter = Parameter(['expr'])
+
+    def call(self, expr):
+        return expr.cdr
+
+
 primitives = [
     Plus(),
     Minus(),
     Multiply(),
+    Divide(),
+    Car(),
+    Cdr(),
 ]

@@ -5,7 +5,7 @@ import re
 from pyl.base import Expression, NIL, Number, Symbol, String, Boolean, Pair
 from pyl.evaluator import EQuoted
 
-__all__ = ['parse']
+__all__ = ['parse', 'parse_sequence']
 
 
 # Lisp grammar
@@ -260,7 +260,13 @@ class Parser(object):
 
 def parse(code):
     # type: (unicode) -> Expression
+    return Parser(tokenize(code)).parse_expression()
+
+
+def parse_sequence(code):
+    # type: (unicode) -> Expression
     return Parser(tokenize(code)).parse()
+
 
 # sample_code = '''
 # `(1 2)
