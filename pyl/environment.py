@@ -1,17 +1,13 @@
 # -*- coding:utf8 -*-
 
 
-try:
-    # noinspection PyUnresolvedReferences
-    from typing import List, Optional, Union, Dict, Type, Callable, Any
-except ImportError:
-    pass
+from typing import Optional, Any
 
 
 class EnvironmentFrame(object):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional['Environment'] = None):
         self.data = {}
-        self.parent = parent  # type: Optional[Environment]
+        self.parent: Optional[Environment] = parent
 
     def get(self, key):
         if key in self.data:
@@ -27,20 +23,17 @@ class Environment(object):
     def __init__(self, frame=None):
         self.frame = frame or EnvironmentFrame()
 
-    def get(self, key):
-        # type: (str) -> Any
+    def get(self, key: str) -> Any:
         return self.frame.get(key)
 
-    def set(self, key, value):
-        # type: (str, Any) -> None
+    def set(self, key: str, value: Any):
         self.frame.set(key, value)
 
-    def extend(self):
-        # type: () -> Environment
+    def extend(self) -> 'Environment':
         return Environment(EnvironmentFrame(parent=self.frame))
 
 
-def init_environment():
+def init_environment() -> Environment:
     """初始环境"""
     env = Environment()
 

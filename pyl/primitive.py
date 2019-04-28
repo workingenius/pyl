@@ -2,14 +2,10 @@
 
 """ Primitive Procedures -- 原始过程及其实现"""
 
-try:
-    # noinspection PyUnresolvedReferences
-    from typing import List, Optional, Union, Dict, Type, Callable
-except ImportError:
-    pass
+from typing import List
 
+from .base import ComputationalObject, Number, Boolean
 from .evaluator import ProcedureBase, Parameter
-from .base import ComputationalObject, Symbol, Number, Boolean
 
 
 class Primitive(object):
@@ -24,7 +20,7 @@ class Plus(Primitive, ProcedureBase):
 
     parameter = Parameter(['a', 'b'])
 
-    def call(self, *nums):  # type: (List[ComputationalObject]) -> ComputationalObject
+    def call(self, *nums: List[ComputationalObject]) -> ComputationalObject:
         return Number(sum([x.value for x in nums]))
 
 

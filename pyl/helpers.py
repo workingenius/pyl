@@ -1,5 +1,5 @@
 # -*- coding:utf8 -*-
-from .base import Pair, NIL, Nil
+from .base import Pair, NIL
 
 
 def pylist_to_list(py_lst):

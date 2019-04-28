@@ -262,14 +262,12 @@ class Parser(object):
         raise ParseError(message)
 
 
-def parse(code=None, token_lst=None):
-    # type: (Optional[unicode], Optional[List[Token]]) -> Expression
+def parse(code: Optional[str] = None, token_lst: Optional[List[Token]] = None) -> Expression:
     token_lst = token_lst or tokenize(code)
     return Parser(token_lst).parse_expression()
 
 
-def parse_sequence(code=None, token_lst=None):
-    # type: (Optional[unicode], Optional[List[Token]]) -> Expression
+def parse_sequence(code: Optional[str] = None, token_lst: Optional[List[Token]] = None) -> Expression:
     token_lst = token_lst or tokenize(code)
     return Parser(token_lst).parse()
 
