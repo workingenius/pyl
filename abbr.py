@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 
-u"""使在 python 中能直观地生成 scheme 列表
+"""使在 python 中能直观地生成 scheme 列表
 
 不依赖 parser 也能达到 repl 的效果"""
 import traceback
@@ -26,11 +26,11 @@ def list_in_python(o):
     elif isinstance(o, str):
         ret = Symbol(o)
 
-    elif isinstance(o, unicode):
+    elif isinstance(o, str):
         ret = Symbol(o.encode('utf-8'))
 
     elif isinstance(o, (tuple, list)):
-        ret = pylist_to_list(map(list_in_python, o))
+        ret = pylist_to_list(list(map(list_in_python, o)))
 
     else:
         raise TypeError('invalid scheme abbreviation')
@@ -46,18 +46,18 @@ def repl():
 
     while True:
         try:
-            inp = raw_input('!> ')
+            inp = input('!> ')
         except EOFError:
-            print
-            print 'Bye.'
+            print()
+            print('Bye.')
             break
 
         if inp.strip():
             try:
                 expr = list_in_python(eval(inp))
-                print evaluate(expr, env)
+                print(evaluate(expr, env))
             except Exception:
-                print traceback.format_exc()
+                print(traceback.format_exc())
 
 
 if __name__ == '__main__':

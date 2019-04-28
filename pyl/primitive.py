@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 
-u""" Primitive Procedures -- 原始过程及其实现"""
+""" Primitive Procedures -- 原始过程及其实现"""
 
 try:
     # noinspection PyUnresolvedReferences
@@ -25,7 +25,7 @@ class Plus(Primitive, ProcedureBase):
     parameter = Parameter(['a', 'b'])
 
     def call(self, *nums):  # type: (List[ComputationalObject]) -> ComputationalObject
-        return Number(sum(map(lambda x: x.value, nums)))
+        return Number(sum([x.value for x in nums]))
 
 
 class Minus(Primitive, ProcedureBase):

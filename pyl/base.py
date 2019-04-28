@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 
-u"""基础数据结构"""
+"""基础数据结构"""
 
 
 class ComputationalObject(object):

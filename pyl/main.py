@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 
-u"""evaluator entrance
+"""evaluator entrance
 
 解释器入口
 接受要解释的数据，而不是文本表示的代码

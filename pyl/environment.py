@@ -41,10 +41,10 @@ class Environment(object):
 
 
 def init_environment():
-    u"""初始环境"""
+    """初始环境"""
     env = Environment()
 
-    from primitive import primitives
+    from .primitive import primitives
 
     for primitive in primitives:
         env.set(primitive.keyword, primitive)

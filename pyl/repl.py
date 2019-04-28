@@ -30,10 +30,10 @@ def repl():
 
     while True:
         try:
-            inp = raw_input('>> ' if has_prompt else '')
+            inp = input('>> ' if has_prompt else '')
         except (EOFError, KeyboardInterrupt):
-            print
-            print 'Bye.'
+            print()
+            print('Bye.')
             break
 
         if inp.strip():
@@ -45,10 +45,10 @@ def repl():
                     expr = parse(exp_buffer)
                     exp_buffer = ''
                     has_prompt = True
-                    print evaluate(expr, env)
+                    print(evaluate(expr, env))
 
                 else:
                     has_prompt = False
 
             except Exception:
-                print traceback.format_exc()
+                print(traceback.format_exc())

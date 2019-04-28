@@ -19,7 +19,7 @@ class ProcedureBase(ComputationalObject):
     @property
     def parameter(self):
         # type: () -> Parameter
-        u"""参数表"""
+        """参数表"""
         raise NotImplementedError
 
     def call(self, *arguments):
@@ -63,15 +63,14 @@ def evaluate(expression, environment):
 
 def evaluate_sequence(expression_lst, environment):
     # type: (Expression, Environment) -> ComputationalObject
-    co_lst = map(lambda expr: evaluate(expr, environment),
-                 list_to_pylist(expression_lst))
+    co_lst = [evaluate(expr, environment) for expr in list_to_pylist(expression_lst)]
     if co_lst:
         return co_lst[-1]
 
 
 def classify(expression):
     # type: (Expression) -> Optional[type]
-    u"""给表达式分类，决定用哪个 Structure 来解释
+    """给表达式分类，决定用哪个 Structure 来解释
 
     没有找到分类，则返回 None
     """
@@ -83,18 +82,18 @@ def classify(expression):
 
 
 class Structure(object):
-    u"""
+    """
     `结构` 可以按照语法把表达式分解成各关键部分，和根据语法把各关键部分组合成表达式
 
     实现结构与语法的解耦
     """
 
     def dismantle(self):  # type: () -> None
-        u"""把完整表达式分解成关键部分"""
+        """把完整表达式分解成关键部分"""
         raise NotImplementedError
 
     def construct(self):  # type: () -> Expression
-        u"""用关键部分拼成表达式"""
+        """用关键部分拼成表达式"""
         raise NotImplementedError
 
     def __init__(self):
@@ -107,7 +106,7 @@ class Structure(object):
 class Evaluator(object):
     @classmethod
     def adapt(cls, expression):  # type: (Expression) -> bool
-        u"""判断某 表达式是否属于此类型，适合用此类型的方法来解释"""
+        """判断某 表达式是否属于此类型，适合用此类型的方法来解释"""
         raise NotImplementedError
 
     def eval(self, environment):
@@ -124,7 +123,7 @@ class NoPartsMixin(object):
 
 
 class ESelfEvaluating(NoPartsMixin, Structure, Evaluator):
-    u"""针对 解释为自己的表达式 的解释"""
+    """针对 解释为自己的表达式 的解释"""
 
     @classmethod
     def adapt(cls, expression):
@@ -139,7 +138,7 @@ class ESelfEvaluating(NoPartsMixin, Structure, Evaluator):
 
 
 class EVariable(NoPartsMixin, Structure, Evaluator):
-    u"""针对 变量 的解释"""
+    """针对 变量 的解释"""
 
     @classmethod
     def adapt(cls, expression):
@@ -155,11 +154,11 @@ class EVariable(NoPartsMixin, Structure, Evaluator):
 
 
 class ESpecialFormMixin(object):
-    u"""特殊形式的工具方法"""
+    """特殊形式的工具方法"""
 
     @staticmethod
     def first_symbol(expression):  # type: (Expression) -> Optional[Expression]
-        u"""如果列表有多个元素，且第一个是 symbol，则返回之，否则返回 None
+        """如果列表有多个元素，且第一个是 symbol，则返回之，否则返回 None
 
         列表的首个元素的 symbol 值，经常用作判定特殊形式的标识
         """
@@ -174,7 +173,7 @@ class ESpecialFormMixin(object):
 
     @classmethod
     def index(cls, lst, index):  # type: (Pair, int) -> Optional[Expression]
-        u"""获取 lst 里的第 index 个元素，如果不存在则返回 None"""
+        """获取 lst 里的第 index 个元素，如果不存在则返回 None"""
         ret = None
 
         if not isinstance(index, int) or index < 0:
@@ -199,7 +198,7 @@ class ESpecialFormMixin(object):
 
 
 class EQuoted(ESpecialFormMixin, Structure, Evaluator):
-    u"""针对 引用 的解释"""
+    """针对 引用 的解释"""
     keyword = 'quote'
 
     @classmethod
@@ -222,7 +221,7 @@ class EQuoted(ESpecialFormMixin, Structure, Evaluator):
 
 
 class EAssignment(ESpecialFormMixin, Structure, Evaluator):
-    u"""针对 赋值 的解释"""
+    """针对 赋值 的解释"""
     keyword = 'set!'
 
     @classmethod
@@ -259,7 +258,7 @@ class EAssignment(ESpecialFormMixin, Structure, Evaluator):
 
 
 class EDefinition(ESpecialFormMixin, Structure, Evaluator):
-    u"""针对 define 的解释"""
+    """针对 define 的解释"""
     keyword = 'define'
 
     @classmethod
@@ -440,13 +439,13 @@ class ECond(ESpecialFormMixin, Structure, Evaluator):
         super(self.__class__, self).__init__()
 
     def dismantle(self):  # type: () -> None
-        self.branch_lst = map(SCondBranch, list_to_pylist(self.expression.cdr))
+        self.branch_lst = list(map(SCondBranch, list_to_pylist(self.expression.cdr)))
 
     def construct(self):  # type: () -> Expression
         return Pair(Symbol(self.keyword), pylist_to_list([c.expression for c in self.branch_lst]))
 
     def _expand(self, branch_lst):
-        u"""展开成 if 表达式"""
+        """展开成 if 表达式"""
         ret = None
 
         if len(branch_lst) > 1:
@@ -494,7 +493,7 @@ class EApplication(Structure, Evaluator):
 
     def eval(self, environment):  # type: (Environment) -> ComputationalObject
         proc = evaluate(self.procedure_expression, environment)
-        args = map(lambda expr: evaluate(expr, environment), self.argument_lst)
+        args = [evaluate(expr, environment) for expr in self.argument_lst]
         return proc.call(*args)
 
 
@@ -524,4 +523,4 @@ class EParameter(Structure):
         self.parameter = Parameter(names=[expr.value for expr in list_to_pylist(self.expression)])
 
     def construct(self):  # type: () -> Expression
-        return pylist_to_list(map(Symbol, self.parameter.names))
+        return pylist_to_list(list(map(Symbol, self.parameter.names)))
