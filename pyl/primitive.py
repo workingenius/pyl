@@ -4,7 +4,7 @@
 
 from typing import List
 
-from .datatype import ComputationalObject, Number, Boolean
+from .datatype import ComputationalObject, Number, Boolean, Symbol
 from pyl.datatype import Parameter, ProcedureBase
 
 
@@ -105,6 +105,16 @@ class Cdr(Primitive, ProcedureBase):
         return expr.cdr
 
 
+class Display(Primitive, ProcedureBase):
+    keyword = 'display'
+
+    parameter = Parameter(['o'])
+
+    def call(self, o):
+        print(o)
+        return Symbol('display')
+
+
 primitives = [
     Plus(),
     Minus(),
@@ -116,4 +126,5 @@ primitives = [
     LessThan(),
     Car(),
     Cdr(),
+    Display(),
 ]

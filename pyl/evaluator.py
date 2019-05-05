@@ -202,6 +202,20 @@ class EApplication(Evaluator):
         return proc.call(*args)
 
 
+class ELet(Evaluator):
+    def adapt(self, expression: Expression) -> bool:
+        return SLet.adapt(expression)
+
+    def eval(self, expression: Expression, environment: Environment) -> ComputationalObject:
+        l = SLet(expression)
+
+        env = environment.extend()
+        for name, val_expr in l.name_value_pair_lst:
+            env.set(name.value, evaluate(val_expr, environment))
+
+        return evaluate(l.body, env)
+
+
 _evaluator_search_sequence = [
     ESelfEvaluating(),
     EVariable(),
@@ -214,5 +228,6 @@ _evaluator_search_sequence = [
     EOr(),
     EAnd(),
     ELambda(),
+    ELet(),
     EApplication(),
 ]

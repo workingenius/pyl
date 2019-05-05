@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 from pyl.datatype import Expression, Symbol, Pair, NIL, Parameter
 from pyl.helpers import list_to_pylist, pylist_to_list, cons_list, first_symbol, by_index
@@ -257,3 +257,37 @@ class SApplication(Structure):
     @classmethod
     def adapt(cls, expression: Expression) -> bool:
         return isinstance(expression, Pair)
+
+
+class SLet(Structure):
+    keyword = 'let'
+
+    def __init__(self, expression=None, name_value_pair_lst=None, body=None):
+        self.expression: Expression = expression
+        self.name_value_pair_lst: List[Tuple[Symbol, Expression]] = name_value_pair_lst
+        self.body: Expression = body
+        super(self.__class__, self).__init__()
+
+    def construct(self) -> Expression:
+        return cons_list(
+            Symbol(self.keyword),
+            pylist_to_list(
+                [cons_list(name, val) for name, val in self.name_value_pair_lst]
+            ),
+            self.body
+        )
+
+    def dismantle(self):
+        nv_lst = self.expression.cdr.car
+
+        nv_pair_lst = []
+        nv_lst = list_to_pylist(nv_lst)
+        for nv in nv_lst:
+            nv_pair_lst.append(
+                (nv.car, nv.cdr.car)
+            )
+
+        body = self.expression.cdr.cdr.car
+
+        self.name_value_pair_lst = nv_pair_lst
+        self.body = body
