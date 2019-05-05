@@ -4,8 +4,8 @@
 
 from typing import List
 
-from .base import ComputationalObject, Number, Boolean
-from .evaluator import ProcedureBase, Parameter
+from .datatype import ComputationalObject, Number, Boolean
+from pyl.datatype import Parameter, ProcedureBase
 
 
 class Primitive(object):

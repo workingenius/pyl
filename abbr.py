@@ -5,7 +5,7 @@
 不依赖 parser 也能达到 repl 的效果"""
 import traceback
 
-from pyl.base import Symbol, Number, String, Boolean
+from pyl.datatype import Symbol, Number, String, Boolean
 from pyl.helpers import pylist_to_list
 
 

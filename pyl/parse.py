@@ -1,14 +1,9 @@
 # -*- coding:utf8 -*-
 
-# noinspection PyUnresolvedReferences
-try:
-    from typing import Optional, List
-except ImportError:
-    pass
-
 import re
+from typing import Optional, List
 
-from pyl.base import Expression, NIL, Number, Symbol, String, Boolean, Pair
+from pyl.datatype import Expression, NIL, Number, Symbol, String, Boolean, Pair
 from pyl.evaluator import EQuoted
 
 

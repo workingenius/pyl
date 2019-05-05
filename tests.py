@@ -2,7 +2,7 @@
 import unittest
 
 from abbr import list_in_python as l
-from pyl.base import Number, String, Boolean
+from pyl.datatype import Number, String, Boolean
 from pyl.main import evaluate
 
 
