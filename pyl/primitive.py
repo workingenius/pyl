@@ -51,6 +51,15 @@ class Divide(Primitive, ProcedureBase):
         return Number(a.value / b.value)
 
 
+class Remainder(Primitive, ProcedureBase):
+    keyword = 'remainder'
+
+    parameter = Parameter(['a', 'b'])
+
+    def call(self, a, b):
+        return Number(a.value % b.value)
+
+
 class Equal(Primitive, ProcedureBase):
     keyword = '='
 
@@ -101,6 +110,7 @@ primitives = [
     Minus(),
     Multiply(),
     Divide(),
+    Remainder(),
     Equal(),
     GreaterThan(),
     LessThan(),
