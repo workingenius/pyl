@@ -3,7 +3,7 @@
 import traceback
 
 from .environment import init_environment
-from .evaluator import evaluate
+from .analyze import evaluate
 from .parse import parse, tokenize, TLeftPar, TRightPar
 
 

@@ -11,7 +11,7 @@
 __all__ = ['evaluate', 'evaluate_sequence']
 
 from .environment import init_environment
-from .evaluator import evaluate as _evaluate, evaluate_sequence as _evaluate_sequence
+from .analyze import evaluate as _evaluate, evaluate_sequence as _evaluate_sequence
 
 
 def evaluate(expression):
