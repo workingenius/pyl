@@ -2,8 +2,7 @@
 
 import traceback
 
-from .environment import init_environment
-from .analyze import evaluate
+from pyl.main import Evaluator
 from .parse import parse, tokenize, TLeftPar, TRightPar
 
 
@@ -21,8 +20,8 @@ def is_par_completed(token_lst):
     return par_stack <= 0
 
 
-def repl():
-    env = init_environment()
+def repl(bool_analyze):
+    evaluator = Evaluator(bool_analyze)
 
     exp_buffer = ''
     has_prompt = True
@@ -44,7 +43,7 @@ def repl():
                     expr = parse(exp_buffer)
                     exp_buffer = ''
                     has_prompt = True
-                    print(evaluate(expr, env))
+                    print(evaluator.eval(expr))
 
                 else:
                     has_prompt = False

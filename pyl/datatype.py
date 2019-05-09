@@ -4,8 +4,6 @@
 
 from typing import Union, List
 
-from .environment import Environment
-
 
 class ComputationalObject(object):
     def __eq__(self, other):
@@ -111,26 +109,3 @@ class ProcedureBase(ComputationalObject):
 
     def apply(self, *args):
         return self.call(*args)
-
-
-class Procedure(ProcedureBase):
-    def __init__(self, parameter: Parameter, body: Expression, environment: Environment):
-        assert isinstance(body, Expression)
-        assert isinstance(environment, Environment)
-
-        self._parameter: Parameter = parameter
-        self.body: Expression = body
-        self.environment: Environment = environment
-
-    @property
-    def parameter(self) -> Parameter:
-        return self._parameter
-
-    def call(self, *arguments: List[ComputationalObject]) -> ComputationalObject:
-        from pyl.evaluator import evaluate_sequence
-
-        env = self.environment.extend()
-        for param, arg in zip(self.parameter.names, arguments):
-            env.set(param, arg)
-
-        return evaluate_sequence(self.body, env)

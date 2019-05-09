@@ -30,6 +30,27 @@ def classify(expression: Expression) -> Optional['Evaluator']:
             return evaluator
 
 
+class Procedure(ProcedureBase):
+    def __init__(self, parameter: Parameter, body: Expression, environment: Environment):
+        assert isinstance(body, Expression)
+        assert isinstance(environment, Environment)
+
+        self._parameter: Parameter = parameter
+        self.body: Expression = body
+        self.environment: Environment = environment
+
+    @property
+    def parameter(self) -> Parameter:
+        return self._parameter
+
+    def call(self, *arguments: List[ComputationalObject]) -> ComputationalObject:
+        env = self.environment.extend()
+        for param, arg in zip(self.parameter.names, arguments):
+            env.set(param, arg)
+
+        return evaluate_sequence(self.body, env)
+
+
 class Evaluator(object):
     def adapt(self, expression: Expression) -> bool:
         """判断某 表达式是否属于此类型，适合用此类型的方法来解释"""

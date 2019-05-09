@@ -8,17 +8,26 @@
 当作一个表达式解释，还是当作表达式序列解释，留给调用者决定
 """
 
-__all__ = ['evaluate', 'evaluate_sequence']
+__all__ = ['Evaluator']
 
 from .environment import init_environment
-from .analyze import evaluate as _evaluate, evaluate_sequence as _evaluate_sequence
 
 
-def evaluate(expression):
-    environment = init_environment()
-    return _evaluate(expression, environment)
+class Evaluator(object):
+    def __init__(self, bool_analyze):
+        self.bool_analyze = bool(bool_analyze)
 
+        if self.bool_analyze:
+            from .analyze import evaluate, evaluate_sequence
+        else:
+            from .evaluator import evaluate, evaluate_sequence
 
-def evaluate_sequence(expression_lst):
-    environment = init_environment()
-    return _evaluate_sequence(expression_lst, environment)
+        self._eval = evaluate
+        self._eval_seq = evaluate_sequence
+        self.env = init_environment()
+
+    def eval(self, expression):
+        return self._eval(expression, self.env)
+
+    def eval_seq(self, expression):
+        return self._eval_seq(expression, self.env)

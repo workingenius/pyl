@@ -13,7 +13,6 @@ def evaluate(expression: Expression, environment: Environment) -> ComputationalO
 
 
 def evaluate_sequence(expression_lst: Expression, environment: Environment) -> ComputationalObject:
-    # import pdb; pdb.set_trace()
     return analyze_sequence(expression_lst).eval(environment)
 
 
