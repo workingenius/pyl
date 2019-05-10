@@ -5,6 +5,7 @@ from typing import Optional, List
 
 from pyl.datatype import Expression, NIL, Number, Symbol, String, Boolean, Pair
 from pyl.evaluator import EQuoted
+from pyl.structure import SQuoted
 
 
 # Lisp grammar
@@ -199,7 +200,7 @@ class Parser(object):
         if tok.is_a(TQuoteMark):
             self.cut()  # cut quote mark
             exp = self.parse_expression()
-            return EQuoted(quoted=exp).expression
+            return SQuoted(quoted=exp).expression
 
     def parse_list(self):
         t1 = self.foresee()
