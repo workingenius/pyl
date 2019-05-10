@@ -175,7 +175,7 @@ class SIf(Structure):
         self.alternative = self.expression.cdr.cdr.cdr.car
 
     def construct(self) -> Expression:
-        return cons_list(self.condition, self.consequence, self.alternative)
+        return cons_list(Symbol(self.keyword), self.condition, self.consequence, self.alternative)
 
 
 class SLambda(Structure):
