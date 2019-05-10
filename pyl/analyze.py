@@ -239,7 +239,7 @@ class ACond(Analyzer):
 
             ret = SIf(condition=br_0.test,
                       consequence=SSequence(sequence=br_0.then).expression,
-                      alternative=self._expand(br_rest))
+                      alternative=self._expand(br_rest)).expression
 
         elif len(branch_lst) == 1:
             br = branch_lst[0]
@@ -248,7 +248,7 @@ class ACond(Analyzer):
                 ret = SSequence(sequence=br.then).expression
             else:
                 ret = SIf(condition=br.test,
-                          consequence=SSequence(sequence=br.then).expression)
+                          consequence=SSequence(sequence=br.then).expression).expression
 
         return ret
 
