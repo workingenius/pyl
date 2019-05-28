@@ -4,6 +4,8 @@ from pyl.datatype import ComputationalObject, Expression, Number, String, Boolea
     is_true, is_false, NIL
 from pyl.environment import Environment
 from pyl.helpers import list_to_pylist
+from pyl.lazy import Thunk
+from pyl.primitive import Primitive
 from pyl.structure import SQuoted, SAssignment, SDefinition, SSequence, SIf, SLambda, SAnd, SOr, SCond, SApplication, \
     SLet
 
@@ -166,7 +168,7 @@ class AIf(Analyzer):
         self.alternative = analyze(i.alternative)
 
     def eval(self, environment: Environment) -> ComputationalObject:
-        if is_true(self.cond.eval(environment)):
+        if is_true(Thunk.force(self.cond.eval(environment))):
             ret = self.consequence.eval(environment)
         else:
             ret = self.alternative.eval(environment)
@@ -267,8 +269,17 @@ class AApplication(Analyzer):
         self.arg_lst = _mp(analyze, a.argument_lst)
 
     def eval(self, environment: Environment) -> ComputationalObject:
-        proc = self.proc.eval(environment)
-        args = _mp(lambda x: x.eval(environment), self.arg_lst)
+        proc = Thunk.force(self.proc.eval(environment))
+
+        # args = _mp(lambda x: x.eval(environment), self.arg_lst)
+
+        if isinstance(proc, Primitive):
+            args = [Thunk.force(arg.eval(environment)) for arg in self.arg_lst]
+        elif isinstance(proc, Procedure):
+            args = [Thunk(arg, environment) for arg in self.arg_lst]
+        else:
+            raise TypeError('{} is not a procedure and can not be called'.format(proc))
+
         return proc.call(*args)
 
 

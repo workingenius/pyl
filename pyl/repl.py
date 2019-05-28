@@ -2,6 +2,7 @@
 
 import traceback
 
+from pyl.lazy import Thunk
 from pyl.main import Evaluator
 from .parse import parse, tokenize, TLeftPar, TRightPar
 
@@ -43,7 +44,7 @@ def repl(bool_analyze):
                     expr = parse(exp_buffer)
                     exp_buffer = ''
                     has_prompt = True
-                    print(evaluator.eval(expr))
+                    print(Thunk.force(evaluator.eval(expr)))
 
                 else:
                     has_prompt = False

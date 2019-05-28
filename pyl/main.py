@@ -7,6 +7,7 @@
 
 当作一个表达式解释，还是当作表达式序列解释，留给调用者决定
 """
+from pyl.lazy import Thunk
 
 __all__ = ['Evaluator']
 
@@ -27,7 +28,7 @@ class Evaluator(object):
         self.env = init_environment()
 
     def eval(self, expression):
-        return self._eval(expression, self.env)
+        return Thunk.force(self._eval(expression, self.env))
 
     def eval_seq(self, expression):
-        return self._eval_seq(expression, self.env)
+        return Thunk.force(self._eval_seq(expression, self.env))
